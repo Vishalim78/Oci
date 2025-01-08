@@ -1,0 +1,39 @@
+name: Connect to OCI Console
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  oci-connection:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Install OCI CLI
+      - name: Install OCI CLI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash -s -- --accept-all-defaults
+          echo 'export PATH=~/.oci-cli/bin:$PATH' >> $GITHUB_ENV
+
+      # Configure OCI CLI
+      - name: Configure OCI CLI
+        env:
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USER: ${{ secrets.OCI_USER }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+        run: |
+          mkdir -p ~/.oci
+          echo "${OCI_PRIVATE_KEY}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          oci setup config --key-file ~/.oci/oci_api_key.pem --user $OCI_USER --tenancy $OCI_TENANCY --region $OCI_REGION
+
+      # Test OCI Connection
+      - name: List Instances
+        run: |
+          oci compute instance list --compartment-id $OCI_TENANCY --output table
