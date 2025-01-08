@@ -1,7 +1,7 @@
 name: Encrypt Secret from Power Automate
 
 on:
-  repository_dispatch:
+  repository_dispatch:self-hosted
     types: [encrypt-secret]
 
 permissions:
