@@ -1,0 +1,139 @@
+title: Create tag namespace
+description: Creates a new tag namespace in the specified compartment.
+schemaVersion: 1.1.0
+version: "25012022"
+
+#####################################
+# Variable Groupings
+#####################################
+
+groupings:
+
+  - title: "Select Compartment"
+    variables:
+      - ${tenancy_ocid}
+      - ${region}
+      - ${compartment_ocid}
+    
+  - title: "Tag Namespace Configuration"
+    variables:
+      - ${tag_namespace_name}
+      - ${tag_namespace_description}
+  
+  - title: "Cost Center Tag Key Definition Configuration"
+    variables:
+      - ${CostCenter_tag_name}
+      - ${CostCenter_tag_description} 
+      - ${CostCenter_is_cost_tracking}
+
+  - title: "Resource Type Tag Key Definition Configuration"
+    variables:
+      - ${ResourceType_tag_name}
+      - ${ResourceType_tag_description}
+      - ${ResourceType_is_cost_tracking} 
+           
+
+variables:
+
+####################################
+# Common Compartment
+####################################
+
+  tenancy_ocid:
+    visible: false
+    title: Tenancy OCID
+    description: Tenancy OCID
+
+  region:
+    visible: false
+    title: Region
+    description: Region
+
+  compartment_ocid:
+    type: oci:identity:compartment:id
+    required: true
+    visible: true
+    title: "Compartment OCID"
+    description: "The OCID of the parent compartment"
+ 
+
+#####################################
+# Tag Namespace Configuration
+#####################################
+
+  tag_namespace_name:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Tag Namespace"
+    description: "Name of the defined tags"
+    default: "Tags"
+   
+   
+  tag_namespace_description:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Namespace Description"
+    description: "Defined tags description"
+    default: "Defined tags for  OCI resources"
+
+#################################################
+# Cost Center Tag Key Definition Configuration
+#################################################
+    
+  CostCenter_tag_name:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Tag Key"
+    description: "Name of the Tag Key Definition"
+ 
+   
+  CostCenter_tag_description:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Tag Description"
+    description: "Tag Key Definition description"
+
+
+  CostCenter_is_cost_tracking:
+    type: bool
+    required: false
+    visible: true
+    title: "Is Cost Tracking True"
+    description: "Is Cost Tracking true or false"
+
+    
+
+#################################################
+# Resource Type Tag Key Definition Configuration
+#################################################
+    
+  ResourceType_tag_name:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Tag Key"
+    description: "Name of the Tag Key Definition"
+
+   
+  ResourceType_tag_description:
+    type: string
+    required: true
+    visible: true
+    title: "Enter Tag Description"
+    description: "Tag Key Definition description"
+
+
+  ResourceType_is_cost_tracking:
+    type: bool
+    required: false
+    visible: true
+    title: "Is Cost Tracking True"
+    description: "Is Cost Tracking true or false"
+    
+
+
+   
