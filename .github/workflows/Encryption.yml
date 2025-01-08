@@ -1,0 +1,75 @@
+name: Encrypt Secret from Power Automate
+
+on:
+  repository_dispatch:
+    types: [encrypt-secret]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  encrypt-secret:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout repository (if needed)
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Python environment
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install pynacl
+
+      # Step 4: Encrypt the secret
+      - name: Encrypt Secret
+        env:
+          PUBLIC_KEY: ${{ github.event.client_payload.key }}
+          SECRET_VALUE: ${{ github.event.client_payload.secret_value }}
+        run: |
+          python -c "
+import nacl.encoding, nacl.public, base64, os
+
+# Get the public key and secret value from environment variables
+public_key = nacl.public.PublicKey(os.environ['PUBLIC_KEY'], nacl.encoding.Base64Encoder())
+sealed_box = nacl.public.SealedBox(public_key)
+encrypted = sealed_box.encrypt(os.environ['SECRET_VALUE'].encode('utf-8'))
+
+# Output the encrypted secret
+print('Encrypted Secret:', base64.b64encode(encrypted).decode('utf-8'))
+          "
+
+      # Step 5: Create or update the secret in the repository
+      - name: Add Encrypted Secret to Repository
+        env:
+          GITHUB_TOKEN: ${{ github.event.client_payload.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          SECRET_NAME: ${{ github.event.client_payload.secret_name }}
+        run: |
+          ENCRYPTED_SECRET=$(python -c "
+import nacl.encoding, nacl.public, base64, os
+
+# Get the public key and secret value from environment variables
+public_key = nacl.public.PublicKey(os.environ['PUBLIC_KEY'], nacl.encoding.Base64Encoder())
+sealed_box = nacl.public.SealedBox(public_key)
+encrypted = sealed_box.encrypt(os.environ['SECRET_VALUE'].encode('utf-8'))
+
+# Print the encrypted value
+print(base64.b64encode(encrypted).decode('utf-8'))
+          ")
+
+          curl -X PUT \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/secrets/$SECRET_NAME \
+          -d "{
+            \"encrypted_value\": \"$ENCRYPTED_SECRET\",
+            \"key_id\": \"${{ github.event.client_payload.key_id }}\"
+          }"
